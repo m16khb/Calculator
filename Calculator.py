@@ -6,9 +6,11 @@ class MyWidget(QWidget):
     def __init__(self):
         super().__init__()
         # 숫자가 보이는 라인에딧 위젯
-        leLayout = QHBoxLayout()
-        le = QLineEdit(self)
-        leLayout.addWidget(le)
+        leLayout = QVBoxLayout()
+        self.le = QLineEdit(self)
+        leLayout.addWidget(self.le)
+        self.status_label = QLabel('No button clicked')
+        leLayout.addWidget(self.status_label)
 
         # button 모음 그리드 레이아웃
         grid = QGridLayout()
@@ -24,9 +26,11 @@ class MyWidget(QWidget):
             if name == '':
                 continue
             button = QPushButton(name)
+            button.setObjectName(name)
+            button.pressed.connect(self.button_pressed)
             grid.addWidget(button, *position)
 
-        # h_layout 과 grid 를 하나로 만들어줄 v_layout
+    # h_layout 과 grid 를 하나로 만들어줄 v_layout
         vbox = QVBoxLayout()
         vbox.addLayout(leLayout)
         vbox.addLayout(grid)
@@ -35,6 +39,13 @@ class MyWidget(QWidget):
         self.setLayout(vbox)
 
         self.show()
+
+    def button_pressed(self):
+        sending_button = self.sender()
+        if str(sending_button.objectName()) == "Close":
+            sys.exit(0)
+        else:
+            self.le.setText(self.le.text() + str(sending_button.objectName()))
 
 
 class MyWindow(QMainWindow):
@@ -45,11 +56,8 @@ class MyWindow(QMainWindow):
         self.setCentralWidget(MainWidget)  # 반드시 필요함.
 
         self.setGeometry(300, 700, 350, 150)
-        self.show()
-
         # move & resize로 대체 가능
-
-        # 동적으로 추가한 버튼
+        self.show()
 
 
 if __name__ == "__main__":
