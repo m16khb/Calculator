@@ -1,4 +1,6 @@
 import sys
+import postfix
+# import tokenize
 from PyQt5.QtWidgets import *
 
 
@@ -9,12 +11,10 @@ class MyWidget(QWidget):
         leLayout = QVBoxLayout()
         self.le = QLineEdit(self)
         leLayout.addWidget(self.le)
-        self.status_label = QLabel('No button clicked')
-        leLayout.addWidget(self.status_label)
 
         # button 모음 그리드 레이아웃
         grid = QGridLayout()
-        names = ['Cls', 'Bck', '', 'Close',
+        names = ['Cls', 'Bck', '(', ')',
                  '7', '8', '9', '/',
                  '4', '5', '6', '*',
                  '1', '2', '3', '-',
@@ -42,8 +42,9 @@ class MyWidget(QWidget):
 
     def button_pressed(self):
         sending_button = self.sender()
-        if str(sending_button.objectName()) == "Close":
-            sys.exit(0)
+        if str(sending_button.objectName()) == "=":
+            instance = postfix.postfix()
+            self.le.setText(str(instance.parse_expr(self.le.text())))
         else:
             self.le.setText(self.le.text() + str(sending_button.objectName()))
 
