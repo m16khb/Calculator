@@ -1,7 +1,69 @@
+import re
 import sys
-import postfix
-# import tokenize
 from PyQt5.QtWidgets import *
+
+
+def tokenize(expStr):
+    RE = re.compile(r'(?:(?<=[^\d\.])(?=\d)|(?=[^\d\.]))', re.MULTILINE)
+    return [x for x in re.sub(RE, " ", expStr).split(" ") if x]
+
+
+def parse_expr(expStr):
+    tokens = tokenize(expStr)
+    OP = ("*", "/", "+", "-", "(", ")")
+    P = {
+        "*": 50,
+        "/": 50,
+        "+": 40,
+        "-": 40,
+        "(": 0
+    }
+    output = []
+    stack = []
+
+    for item in tokens:
+        if item not in OP:
+            output.append(item)
+        elif item == "(":
+            stack.append(item)
+        elif item == ")":
+            while stack != [] and stack[-1] != "(":
+                output.append(stack.pop())
+            stack.pop()
+        else:
+            while stack != [] and P[stack[-1]] >= P[item]:
+                output.append(stack.pop())
+            stack.append(item)
+
+    while stack:
+        output.append(stack.pop())
+
+    return output
+
+
+def calc_expr(expStr):
+    tokens = expStr
+    OP = ("*", "/", "+", "-",)
+    FUNC = {
+        "*": lambda x, y: y * x,
+        "/": lambda x, y: y / x,
+        "+": lambda x, y: y + x,
+        "-": lambda x, y: y - x,
+    }
+    stack = []
+
+    for item in tokens:
+        if item not in OP:
+            if '.' in item:
+                stack.append(float(item))
+            else:
+                stack.append(int(item))
+        else:
+            a = stack.pop()
+            b = stack.pop()
+            stack.append(FUNC[item](a, b))
+
+    return stack.pop()
 
 
 class MyWidget(QWidget):
@@ -43,8 +105,15 @@ class MyWidget(QWidget):
     def button_pressed(self):
         sending_button = self.sender()
         if str(sending_button.objectName()) == "=":
-            instance = postfix.postfix()
-            self.le.setText(str(instance.parse_expr(self.le.text())))
+            self.le.setText(str(calc_expr(parse_expr(self.le.text()))))
+        elif str(sending_button.objectName()) == "Bck":
+            tmp = str(self.le.text())
+            tmp = tmp[:-1]
+            self.le.setText(tmp)
+        elif str(sending_button.objectName()) == "Cls":
+            tmp = str(self.le.text())
+            tmp = tmp[:0]
+            self.le.setText(tmp)
         else:
             self.le.setText(self.le.text() + str(sending_button.objectName()))
 
